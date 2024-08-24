@@ -343,7 +343,7 @@ class JobScraperTask3 implements Runnable {
 			TakesScreenshot ts = (TakesScreenshot) driver;
 			File sources = ts.getScreenshotAs(OutputType.FILE);
 			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-			screenshotPath="C:/Users/user01/Desktop/Automation Scrapping Code Error Screenshots/"
+			screenshotPath="C:/Users/user01/Desktop/Extended Reports/Automation Scrapping Code Error Screenshots/"
 					+ fileName + "_" + timestamp + ".png";
 			File destination = new File(screenshotPath);
 			FileUtils.copyFile(sources, destination);
