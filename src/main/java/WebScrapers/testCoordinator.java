@@ -6,10 +6,10 @@ public class testCoordinator {
     public static void main(String[] args) throws ClassNotFoundException, InterruptedException {
      
         Class<?>[] scrapers = {
-        		  WebScrapers.testscrap1.class
-//                  WebScrapers.testscrap2.class,
-//                  WebScrapers.testscrap3.class,
-//                  WebScrapers.testscrap4.class   
+        		  WebScrapers.testscrap1.class,
+                  WebScrapers.testscrap2.class,
+                  WebScrapers.testscrap3.class,
+                  WebScrapers.testscrap4.class   
         };
 
         Thread[] threads = new Thread[scrapers.length];
