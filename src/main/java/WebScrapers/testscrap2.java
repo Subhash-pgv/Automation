@@ -42,13 +42,13 @@ public class testscrap2 {
         ExtentManager.startTest("Job Scraping Test - weworkremotely", "Automated job scraping from weworkremotely.com");
 
         ChromeOptions options = new ChromeOptions();
-//        options.addArguments("--headless");
-//        options.addArguments("--window-size=1920x1080");
-//        options.addArguments("--disable-gpu");
-//        options.addArguments("--disable-software-rasterizer");
-//        options.addArguments("--no-sandbox");
-//        options.addArguments("--disable-dev-shm-usage");
-//        options.addArguments("--log-level=ALL");
+        options.addArguments("--headless");
+        options.addArguments("--window-size=1920x1080");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--disable-software-rasterizer");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--log-level=ALL");
         WebDriver driver = new ChromeDriver(options);
 
         List<String[]> jobDetailsList = new ArrayList<>();

@@ -47,9 +47,9 @@ public class testscrap4 {
 
         try {
             ChromeOptions options = new ChromeOptions();
-//            options.addArguments("--headless");
-//            options.addArguments("--window-size=1920x1080");
-//            options.addArguments("--disable-gpu");
+            options.addArguments("--headless");
+            options.addArguments("--window-size=1920x1080");
+            options.addArguments("--disable-gpu");
             driver = new ChromeDriver(options);
             JavascriptExecutor js = (JavascriptExecutor) driver;
             driver.get("https://www.workingnomads.com/jobs?location=europe,australia,usa,uk&category=development");

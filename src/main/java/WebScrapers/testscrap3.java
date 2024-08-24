@@ -87,9 +87,9 @@ class JobScraperTask3 implements Runnable {
 		int totalJobsAppended = 0;
 		try {
 			ChromeOptions options = new ChromeOptions();
-//			options.addArguments("--headless");
-//			options.addArguments("--window-size=1920x1080");
-//			options.addArguments("--disable-gpu");
+			options.addArguments("--headless");
+			options.addArguments("--window-size=1920x1080");
+			options.addArguments("--disable-gpu");
 			driver = new ChromeDriver(options);
 			
 			ExtentManager.startTest("Job Scraping Test -" + source +": "+location, "Automated job scraping from " + source+": "+location);
