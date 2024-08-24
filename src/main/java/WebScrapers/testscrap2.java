@@ -1,14 +1,23 @@
 package WebScrapers;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import Utilities.ExtentManager;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -17,261 +26,226 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-
-import java.io.IOException;
 
 public class testscrap2 {
 
-    private static final String DB_URL = "jdbc:sqlserver://10.0.2.34:1433;Database=Automation;User=mailscan;Password=MailScan@343260;encrypt=true;trustServerCertificate=true";
+    static String sources = "weworkremotely.com";
+    static int totalJobCount = 0;  // Add this variable to track the total number of jobs
+    static int totalJobsAppended = 0;
 
-    public static void main(String[] args) throws ClassNotFoundException {
-        Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+    public static void main(String[] args) throws IOException, InterruptedException, SQLException, ClassNotFoundException {
 
-        String UK = "622a65b4671f2c8b98fac83f";
-        String USA = "622a65bd671f2c8b98faca1a";
-        String EUROPE = "622a659af0bac38678ed1398";
-        String Australia = "622a65b0671f2c8b98fac759";
+        // Initialize ExtentReports
+    	 String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
+         String reportPath = "C:/Users/user01/Desktop/Extended Reports/" +sources+ "_"+ timestamp + ".html";
+        ExtentManager.initReport(reportPath);
+        ExtentManager.startTest("Job Scraping Test - weworkremotely", "Automated job scraping from weworkremotely.com");
 
-        String[] locations = {EUROPE, Australia, UK, USA};
+        ChromeOptions options = new ChromeOptions();
+//        options.addArguments("--headless");
+//        options.addArguments("--window-size=1920x1080");
+//        options.addArguments("--disable-gpu");
+//        options.addArguments("--disable-software-rasterizer");
+//        options.addArguments("--no-sandbox");
+//        options.addArguments("--disable-dev-shm-usage");
+//        options.addArguments("--log-level=ALL");
+        WebDriver driver = new ChromeDriver(options);
 
-        // Create a thread pool with 4 threads
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-        for (String location : locations) {
-            executor.execute(() -> {
-                try {
-                    scrapeJobs(location);
-                } catch (SQLException | IOException e) {
-                    e.printStackTrace();
-                }
-            });
-        }
-        executor.shutdown();
-    }
-
-    private static void scrapeJobs(String location) throws SQLException, IOException {
-        WebDriver driver = null;
-        Connection connection = null;
-        int totalJobsAppended = 0;
         List<String[]> jobDetailsList = new ArrayList<>();
+        
+        JavascriptExecutor js = (JavascriptExecutor) driver;
 
         try {
-            ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless");
-            options.addArguments("--window-size=1920x1080");
-            options.addArguments("--disable-gpu");
-            driver = new ChromeDriver(options);
-
-            System.out.println("ADDING JOBS FROM \"jobgether.com\" for location: " + location);
-            driver.get("https://jobgether.com/search-offers?locations=" + location
-                    + "&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f");
+            driver.get("https://weworkremotely.com/remote-jobs/search?search_uuid=&term=&sort=any_time&categories%5B%5D=2&categories%5B%5D=17&categories%5B%5D=18&region%5B%5D=1&region%5B%5D=5&region%5B%5D=6&region%5B%5D=7&company_size%5B%5D=1+-+10&company_size%5B%5D=11+-+50");
             driver.manage().window().maximize();
-            
+            sleepRandom();
+            ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "Navigated to weworkremotely.com");
+            System.out.println("ADDING JOBS FROM \"weworkremotely.com\"");
 
-            handlePopUp(driver);
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-            WebElement resultCountElement = getElementIfExists(driver,
-                    "//div[contains(@class,'sort_counter_container')]/div/div[1]");
-            String resultText = resultCountElement.getText();
-            String[] parts = resultText.split(" ");
-            int totalJobCount = Integer.parseInt(parts[0].trim());
-            System.out.println("Total jobs found: " + totalJobCount);
+           
+            Connection connection = null;
 
-            for (int i = 1; i <= totalJobCount; i++) {
-                String companyName = "";
-                String jobTitle = "";
-                String jobLocation = "";
-                String jobURL = "";
-                String companyWebsite = "";
-                String companySize = "";
-                String dateCreated = "";
+            int[] sections = {2, 17, 18};
+            int totalJobFinds = 0;  // Add this variable to track the number of jobs found
 
-                System.out.println("Adding Jobs for " + location + "...");
+            List<String> tabs = null;
 
-                WebElement jobTitleElement = getElementIfExists(driver,
-                        "(//div[@id='offer-body'])[" + i + "]/div/div/h3");
-                if (jobTitleElement == null) {
-                    try {
-                        if (i % 35 == 0) {
-                            WebElement seeMore = getElementIfExists(driver,
-                                    "//a[normalize-space()='See more']");
-                            if (seeMore != null) {
-                                seeMore.click();
-                                jobTitleElement = getElementIfExists(driver,
-                                        "(//div[@id='offer-body'])[" + i + "]/div/div/h3");
-                            }
-                            sleepRandom();
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Inner break performed at " + i);
-                        break;
+            for (int sectionId : sections) {
+            	System.out.println("looking Jobs from "+sources +" please wait untill completed");
+
+                String companyName = null;
+                String jobTitle = null;
+                String jobLocation = null;
+                String jobURL = null;
+                String employeeCount = "1-50";
+                String companyWebsite = null;
+               
+                String dateCreated = null;
+
+                String viewAll = null;
+                try {
+                    WebElement t = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@id='category-" + sectionId + "']//li[@class='view-all']/a")));
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", t);
+                } catch (Exception e) {
+                    switch (sectionId) {
+                        case 2:
+                            ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "No jobs found for Full-stack programming");
+                            break;
+                        case 17:
+                            ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "No jobs found for Front-end programming");
+                            break;
+                        case 18:
+                            ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "No jobs found for back-end programming");
+                            break;
                     }
                 }
 
-                if (i % 2 == 0 && i <= totalJobCount) {
-                    int j = i - 1;
-                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
-                            driver.findElement(By.xpath("(//div[@id='offer-body'])[" + j + "]/div/div/h3")));
+                WebElement viewAllElement = getElementIfExists(driver, "//section[@id='category-" + sectionId + "']//li[@class='view-all']/a");
+                if (viewAllElement != null) {
+                    viewAll = viewAllElement.getAttribute("href");
                 }
 
-                if (jobTitleElement != null) {
-                    jobTitle = jobTitleElement.getText();
-                }
+                String script = "window.open(arguments[0], '_blank');";
+                js.executeScript(script, viewAll);
+                sleepRandom();
 
-                WebElement jobLinkElement = getElementIfExists(driver,
-                        "(//div[@id='offer-body']/parent::div/preceding-sibling::a)[" + i + "]");
-
-                if (jobLinkElement != null) {
-                    jobLinkElement.click();
-                    sleepRandom();
-                }
-
-                List<String> tabs = new ArrayList<>(driver.getWindowHandles());
+                tabs = new ArrayList<>(driver.getWindowHandles());
                 driver.switchTo().window(tabs.get(1));
-                jobURL = driver.getCurrentUrl();
 
-                // Extract additional details
-                WebElement jobLocationElement = getElementIfExists(driver,
-                        "//div[@id='offer_general_data']//span[contains(.,'Work from:')]/following-sibling::div");
-                if (jobLocationElement != null) {
-                    jobLocation = jobLocationElement.getText();
+                List<WebElement> resultCountElement = driver.findElements(By.xpath("//section[@id='category-" + sectionId + "']//li/a//span[@class='title']"));
+
+                for (int i = 1; i <= resultCountElement.size(); i++) {
+
+                    ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "Adding Jobs for " + sources + " please wait until it shows completed.....");
+
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", driver.findElement(By.xpath("(//section[@id='category-" + sectionId + "']//li/a//span[@class='title'])[" + i + "]")));
+
+                    // Handle each element and check if it exists
+                    WebElement companyNames = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='company'][1])[" + i + "]");
+                    if (companyNames != null) {
+                        companyName = companyNames.getText();
+                    }
+
+                    WebElement jobTitles = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='title'])[" + i + "]");
+                    if (jobTitles != null) {
+                        jobTitle = jobTitles.getText();
+                    }
+
+                    WebElement jobLocations = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='region company'])[" + i + "]");
+                    if (jobLocations != null) {
+                        jobLocation = jobLocations.getText();
+                    }
+
+                    WebElement jobURLs = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='region company'])[" + i + "]/parent::a");
+                    if (jobURLs != null) {
+                        jobURL = jobURLs.getAttribute("href");
+                    }
+
+                    js.executeScript(script, jobURL);
+                    sleepRandom();
+
+                    tabs = new ArrayList<>(driver.getWindowHandles());
+                    driver.switchTo().window(tabs.get(2));
+
+                    WebElement CompanyWebsites = getElementIfExists(driver, "//div[@class='company-card border-box']//a[normalize-space()='Website']");
+                    if (CompanyWebsites != null) {
+                        companyWebsite = CompanyWebsites.getAttribute("href");
+                    }
+
+                    LocalDateTime now = LocalDateTime.now();
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                    dateCreated = now.format(formatter);
+
+                    jobDetailsList.add(new String[]{jobTitle, jobLocation, jobURL, companyName, employeeCount,
+                            companyWebsite, sources, dateCreated});
+
+                    totalJobFinds++;
+
+                    driver.close();
+                    driver.switchTo().window(tabs.get(1));
                 }
-
-                WebElement companyNameElement = getElementIfExists(driver,
-                        "//div[contains(@class,'flex justify-center')]/following-sibling::span[1]");
-                if (companyNameElement != null) {
-                    companyName = companyNameElement.getText();
-                }
-
-                WebElement companyUrlElement = getElementIfExists(driver,
-                        "//div[contains(@class,'flex justify-center')]/following-sibling::a");
-                if (companyUrlElement != null) {
-                    companyWebsite = companyUrlElement.getAttribute("href");
-                }
-
-                WebElement companySizeElement = getElementIfExists(driver,
-                        "//div[contains(@class,'flex justify-center')]/following-sibling::div//span");
-                if (companySizeElement != null) {
-                    companySize = companySizeElement.getText();
-                }
-
-                dateCreated = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-                List<String> validSizes = Arrays.asList("11 - 50", "2 - 10", "51 - 200");
-
-                // Add job details to the list
-                if (validSizes.contains(companySize)) {
-                    jobDetailsList.add(new String[]{jobTitle, jobLocation, jobURL, companyName, companySize,
-                            companyWebsite, "jobgether.com", dateCreated});
-                }
-
-                // Close the job detail tab and switch back
                 driver.close();
                 driver.switchTo().window(tabs.get(0));
+            }
 
-                if (i % 35 == 0) {
-                    try {
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
-                                driver.findElement(
-                                        By.xpath("(//div[@id='offer-body']/parent::div/preceding-sibling::a)[" + i + "]")));
-                    } finally {
-                        WebElement seeMore = getElementIfExists(driver, "//a[normalize-space()='See more']");
-                        if (seeMore != null) {
-                            seeMore.click();
-                        }
-                    }
+            // After scraping all sections, report the results
+            if (totalJobCount == totalJobFinds) {
+                ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "Searched all companies for new jobs.-- " + sources);
+                System.out.println("Searched all companies for new jobs.-- " + sources);
+            }
 
-                    sleepRandom();
-                }
+            if (totalJobsAppended > 0) {
+                ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, totalJobsAppended + " jobs added to DB successfully. -" + sources);
+                System.out.println( totalJobsAppended + " jobs added to DB successfully. -" + sources);
+            } else {
+                ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "No new jobs found.-- " + sources);
+                System.out.println("No new jobs found.-- " + sources);
             }
 
         } catch (Exception e) {
-            System.out.println("Code Not executed completely for location -- " + location);
+        	 ExtentManager.getTest().fail("Error occurred: " + e.getMessage());
+            ExtentManager.getTest().log(com.aventstack.extentreports.Status.FAIL, "Code did not execute completely. -- " + sources);
+            System.out.println("Code did not execute completely. -- " + sources);
+            ExtentManager.getTest().fail("Error occurred: " + e.getMessage());
             e.printStackTrace();
+            String screenshotPath = takeScreenshot(driver, "error");
+            ExtentManager.addScreenshot(screenshotPath);
         } finally {
-            // SQL connection setup
-            connection = DriverManager.getConnection(DB_URL);
-
-            // SQL queries
-            String checkSQL = "SELECT COUNT(*) FROM JobListings WHERE jobUrl = ?";
-            ResultSet resultSet = null;
-            // Check and insert jobs into the database
-            String insertSQL = "INSERT INTO JobListings (jobTitle, jobLocations, jobUrl, companyName, employeeCount, companyWebsite, source, dateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            for (String[] jobDetails : jobDetailsList) {
-                String jobURL = jobDetails[2];
-
-                // Check if job URL already exists
+            try {
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                Connection connection = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=JobDatabase;user=sa;password=password");
+                String checkSQL = "SELECT COUNT(*) FROM Jobs WHERE JobURL = ?";
+                String insertSQL = "INSERT INTO Jobs (JobTitle, JobLocation, JobURL, CompanyName, EmployeeCount, CompanyWebsite, Source, DateCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 PreparedStatement checkStatement = connection.prepareStatement(checkSQL);
-                checkStatement.setString(1, jobURL);
-                resultSet = checkStatement.executeQuery();
-                if (resultSet.next() && resultSet.getInt(1) == 0) {
-                    // Insert new job listing
-                    PreparedStatement insertStatement = connection.prepareStatement(insertSQL);
-                    for (int j = 0; j < jobDetails.length; j++) {
-                        insertStatement.setString(j + 1, jobDetails[j]);
-                    }
-                    insertStatement.executeUpdate();
-                    insertStatement.close();
-                    totalJobsAppended++;
-                }
-                resultSet.close();
-                checkStatement.close();
-            }
-            if (totalJobsAppended != 0) {
-                System.out.println(totalJobsAppended + " jobs added to DB from location: " + location);
-            } else {
-                System.out.println("No new jobs found from location: " + location);
-            }
+                PreparedStatement insertStatement = connection.prepareStatement(insertSQL);
 
-            if (driver != null) {
-                driver.quit();
-            }
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                for (String[] jobDetails : jobDetailsList) {
+                    checkStatement.setString(1, jobDetails[2]);
+                    ResultSet resultSet = checkStatement.executeQuery();
+                    if (resultSet.next() && resultSet.getInt(1) == 0) {
+                        // Insert new job record
+                        for (int i = 0; i < jobDetails.length; i++) {
+                            insertStatement.setString(i + 1, jobDetails[i]);
+                        }
+                        insertStatement.executeUpdate();
+                        totalJobsAppended++;
+                    }
                 }
+                connection.close();
+            } catch (SQLException | ClassNotFoundException e) {
+                ExtentManager.getTest().log(com.aventstack.extentreports.Status.FAIL, "Error inserting job data into SQL database. " + e.getMessage());
+                System.out.println("Error inserting job data into SQL database. " + e.getMessage());
+                e.printStackTrace();
+                ExtentManager.getTest().fail("Error occurred: " + e.getMessage());
             }
+            driver.quit();
+            ExtentManager.flushReport();
         }
+    }
+
+    private static void sleepRandom() throws InterruptedException {
+        Random rand = new Random();
+        int randomDelay = rand.nextInt(5000) + 1000; // 1 to 5 seconds
+        Thread.sleep(randomDelay);
     }
 
     private static WebElement getElementIfExists(WebDriver driver, String xpath) {
         try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
-            return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
+            return driver.findElement(By.xpath(xpath));
         } catch (Exception e) {
             return null;
         }
     }
 
-    private static void sleepRandom() {
-        try {
-            int delay = new Random().nextInt(2000) + 1000; // Delay between 1 and 2 seconds
-            Thread.sleep(delay);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    private static String takeScreenshot(WebDriver driver, String screenshotName) throws IOException {
+    	String screenshotPath = null;
+        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+        File destinationFile = new File("C:/Users/user01/Desktop/Extended Reports/Automation Scrapping Code Error Screenshots/" + screenshotName + "_" +
+                                         DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now()) + ".png");
+        FileUtils.copyFile(screenshot, destinationFile);
+        System.out.println("Screenshot taken in " + sources + " :" + destinationFile.getPath());
+		return screenshotPath;
     }
-
-    private static void handlePopUp(WebDriver driver) {
-        try {
-            // Check if the pop-up exists
-            WebElement closeButton = getElementIfExists(driver, "//button[@data-pc-section='closebutton']");
-            if (closeButton != null) {
-                closeButton.click();
-                System.out.println("Pop-up closed.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
- 
 }
