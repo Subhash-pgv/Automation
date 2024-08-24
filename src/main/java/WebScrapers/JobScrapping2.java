@@ -34,6 +34,10 @@ public class JobScrapping2 {
         options.addArguments("--headless");
         options.addArguments("--window-size=1920x1080");
         options.addArguments("--disable-gpu");
+        options.addArguments("--disable-software-rasterizer");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--log-level=ALL"); 
         WebDriver driver = new ChromeDriver(options);
   
         JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -45,13 +49,13 @@ public class JobScrapping2 {
         
         
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         
         
     	List<String[]> jobDetailsList = new ArrayList<>();
     	Connection connection = null;
 
-        wait.until(ExpectedConditions
+    	wait.until(ExpectedConditions
                 .presenceOfElementLocated(By.xpath("//div//ul//li/a//span[@class='title']")));
 
        List<WebElement> totalJobs = driver.findElements(By.xpath("//div//ul//li/a//span[@class='title']"));
@@ -77,7 +81,10 @@ public class JobScrapping2 {
             
             String viewAll=null;
            try { 
-            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",driver.findElement(By.xpath("//section[@id='category-" + sectionId + "']//li[@class='view-all']/a")));
+        	  
+        	   WebElement t = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@id='category-"+ sectionId +"']//li[@class='view-all']/a")));
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",t);
            }catch(Exception e){
         	   switch (sectionId) {
 				case 2:
@@ -92,7 +99,7 @@ public class JobScrapping2 {
 				}
         	 }
            
-            WebElement viewAllElement  = getElementIfExists(driver, "//section[@id='category-" + sectionId + "']//li[@class='view-all']/a");
+            WebElement viewAllElement  = getElementIfExists(driver, "//section[@id='category-"+ sectionId +"']//li[@class='view-all']/a");
             if (viewAllElement != null) {
             	viewAll= viewAllElement.getAttribute("href");
             	
@@ -106,31 +113,31 @@ public class JobScrapping2 {
 			driver.switchTo().window(tabs.get(1));
             
         	
-        	List<WebElement> resultCountElement = driver.findElements(By.xpath("//section[@id='category-" + sectionId + "']//li/a//span[@class='title']"));
+        	List<WebElement> resultCountElement = driver.findElements(By.xpath("//section[@id='category-"+ sectionId +"']//li/a//span[@class='title']"));
    
         	for (int i = 1; i <= resultCountElement.size(); i++) {
         		
         		System.out.println("Adding Jobs for "+sources +" please wait until it shows completed.....");
         		
-        		((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",driver.findElement(By.xpath("(//section[@id='category-" + sectionId + "']//li/a//span[@class='title'])[" + i + "]")));
+        		((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",driver.findElement(By.xpath("(//section[@id='category-"+ sectionId +"']//li/a//span[@class='title'])[" + i + "]")));
 
                 // Handle each element and check if it exists
-                WebElement companyNames = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='company'][1])[" + i + "]");
+                WebElement companyNames = getElementIfExists(driver, "(//section[@id='category-"+ sectionId +"']//li/a//span[@class='company'][1])[" + i + "]");
                 if (companyNames != null) {
                     companyName = companyNames.getText();
                 }
 
-                WebElement jobTitles = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='title'])[" + i + "]");
+                WebElement jobTitles = getElementIfExists(driver, "(//section[@id='category-"+ sectionId +"']//li/a//span[@class='title'])[" + i + "]");
                 if (jobTitles != null) {
                     jobTitle = jobTitles.getText();
                 }
 
-                WebElement jobLocations = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='region company'])[" + i + "]");
+                WebElement jobLocations = getElementIfExists(driver, "(//section[@id='category-"+ sectionId +"']//li/a//span[@class='region company'])[" + i + "]");
                 if (jobLocations != null) {
                     jobLocation = jobLocations.getText();
                 }
 
-                WebElement jobURLs = getElementIfExists(driver, "(//section[@id='category-" + sectionId + "']//li/a//span[@class='region company'])[" + i + "]/parent::a");
+                WebElement jobURLs = getElementIfExists(driver, "(//section[@id='category-"+ sectionId +"']//li/a//span[@class='region company'])[" + i + "]/parent::a");
                 if (jobURLs != null) {
                     jobURL = jobURLs.getAttribute("href");
                 }

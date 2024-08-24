@@ -7,12 +7,10 @@ public class MainCoordinator {
         		  WebScrapers.JobScrapping3.class,
                   WebScrapers.JobScrapping2.class,
                   WebScrapers.JobScrapping1.class,
-                  WebScrapers.JobScrapping4.class
-           
+                  WebScrapers.JobScrapping4.class   
         };
 
         Thread[] threads = new Thread[scrapers.length];
-
         
         for (int i = 0; i < scrapers.length; i++) {
             threads[i] = new Thread(new JobScraperTask(scrapers[i], args));

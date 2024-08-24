@@ -69,9 +69,9 @@ class JobScraperTask1 implements Runnable {
 		int totalJobsAppended = 0;
 		try {
 			ChromeOptions options = new ChromeOptions();
-			options.addArguments("--headless");
-			options.addArguments("--window-size=1920x1080");
-			options.addArguments("--disable-gpu");
+//			options.addArguments("--headless");
+//			options.addArguments("--window-size=1920x1080");
+//			options.addArguments("--disable-gpu");
 			driver = new ChromeDriver(options);
 
 			if (location == "USA") {
