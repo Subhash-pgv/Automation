@@ -45,7 +45,7 @@ public class testscrap3 {
 		try {
 			 
 			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-			String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
+			String reportPath = "C:/Users/user01/Desktop/Extended Reports/" +source+ "_"+ timestamp + ".html";
 			
 			ExtentManager.initReport(reportPath);
 
@@ -120,6 +120,7 @@ class JobScraperTask3 implements Runnable {
 			String resultText = resultCountElement.getText();
 			String[] parts = resultText.split(" ");
 			int totalJobCount = Integer.parseInt(parts[0].trim());
+			System.out.println(location +"- total Job Count :"+ totalJobCount);
 
 			for (int i = 1; i <= totalJobCount; i++) {
 
@@ -132,6 +133,7 @@ class JobScraperTask3 implements Runnable {
 
 					if (TotalJobsOnPage.size() == i && i <= totalJobCount) {
 						int j = i - 2;
+						int k=i+1;
 						WebElement ScrollElement = getElementIfExists(driver,
 								"(//div[@id='offer-body'])[" + j + "]/div/div/h3");
 						if (ScrollElement != null) {
@@ -141,6 +143,13 @@ class JobScraperTask3 implements Runnable {
 							if (seemore != null) {
 								seemore.click();
 								sleepRandom();
+								
+								WebElement viewElement = getElementIfExists(driver,
+										"(//div[@id='offer-body'])[" + k + "]/div/div/h3");
+								if(viewElement==null) {
+									System.out.println("No more jobs displyed after clicking on 'see more'- "+source + location);
+									break;
+								}
 							}
 						}
 					}

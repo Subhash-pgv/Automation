@@ -89,8 +89,24 @@ public class testscrap4 {
                 System.out.println("Looking at Job " + i + " from " + sources);
                 
                 List<WebElement> totalJobsOnPage = getElementsIfExists(driver, "(//div[@class='job-cols']//h4[1]//a)");
-                if (totalJobsOnPage.size() == i) {
+                if (totalJobsOnPage.size() == i&&totalJobsOnPage.size()<i) {
                     driver.findElement(By.xpath("//div[@class='show-more']")).click();
+                    sleepRandom();
+                    int k=i+1;
+                    try{
+                    	 WebElement viewElement = getElementIfExists(driver, "(//div[@class='job-cols']//h4[1]//a)[" + k + "]");
+                    	if(viewElement==null) {
+                    		System.out.println("No more jobs displyed after clicking on 'see more' - " + sources);
+							break;
+                    	}
+                    } catch (Exception e) {
+    					ExtentManager.getTest().log(Status.FAIL, "inner break perforemed at 'See more'" + i );
+    					System.out.println("inner break perforemed at 'See more'" + i );
+    					String screenshotPath = takeScreenshot(driver, "error_"+sources);
+    	                ExtentManager.addScreenshot(screenshotPath);
+    					e.printStackTrace();
+    					break;
+    				}
                 }
 
                 WebElement jobTitleElement = getElementIfExists(driver, "(//div[@class='job-cols']//h4[1]//a)[" + i + "]");

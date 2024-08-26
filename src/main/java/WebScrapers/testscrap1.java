@@ -36,7 +36,7 @@ public class testscrap1 {
 
         // Initialize ExtentReports
     	String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-        String reportPath = "C:/Users/user01/Desktop/Extended Reports/" +sources+ "_"+ timestamp + ".html";
+        String reportPath ="C:/Users/user01/Desktop/Extended Reports/" +sources+ "_"+ timestamp + ".html";
         ExtentManager.initReport(reportPath);
         ExtentManager.startTest("Job Scraping Test- YCombinator", "Automated job scraping from YCombinator");
         
@@ -44,9 +44,9 @@ public class testscrap1 {
         WebDriver driver = null;
         try {
             ChromeOptions options = new ChromeOptions();
-            options.addArguments("--headless");
-            options.addArguments("--window-size=1920x1080");
-            options.addArguments("--disable-gpu");
+//            options.addArguments("--headless");
+//            options.addArguments("--window-size=1920x1080");
+//            options.addArguments("--disable-gpu");
             driver = new ChromeDriver(options);
             Actions actions = new Actions(driver);
             JavascriptExecutor js = (JavascriptExecutor) driver;
