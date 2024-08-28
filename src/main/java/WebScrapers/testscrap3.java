@@ -40,7 +40,8 @@ import java.io.IOException;
 public class testscrap3 {
 	static String source = "jobgether.com";
 
-	private static final String[] LOCATIONS = { "UK", "Europe", "Australia", "USA" };
+	private static final String[] LOCATIONS = { "UK"};
+//	, "Europe", "Australia", "USA" 
 
 	public static void main(String[] args) throws SQLException, ClassNotFoundException {
 		try {
@@ -123,50 +124,20 @@ class JobScraperTask3 implements Runnable {
 			System.out.println(location + "- total Job Count :" + totalJobCount);
 			int PageNaviagtionCount = 2;
 
-			for (int i = 1; i <= totalJobCount; i++) {
+			for (int i = 48; i <= totalJobCount; i++) {
 
 				System.out.println(
 						"Adding Jobs for \"" + source + "\" please wait until it shows completed....." + location);
 				List<WebElement> TotalJobsOnPage = getElementsIfExists(driver, "//div[@id='offer-body']/div/div/h3");
-				try {
-
-					if (TotalJobsOnPage.size() == i && i <= totalJobCount) {
-						int j = i - 2;
-						int k = i + 1;
-						WebElement ScrollElement = getElementIfExists(driver,
-								"(//div[@id='offer-body'])[" + j + "]/div/div/h3");
-						if (ScrollElement != null) {
-							((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
-									ScrollElement);
-
-							WebElement naviagteButton = getElementIfExists(driver,
-									"//a[(@role='button' and normalize-space()='" + PageNaviagtionCount + "')]");
-							if (naviagteButton != null) {
-								naviagteButton.click();
-								sleepRandom();
-								PageNaviagtionCount++;
-								i = 0;
-								continue;
-							} else {
-								System.out.println("page naviagtion might at the end.");
-								break;
-
-							}
-						}
-					}
-				} catch (Exception e) {
-					ExtentManager.getTest().log(Status.FAIL,
-							"inner break perforemed at 'page naviagtion'" + i + location);
-					System.out.println("inner break perforemed at 'page naviagtion'" + i + location);
-					String screenshotPath = takeScreenshot(driver, "error_" + source, location);
-					ExtentManager.addScreenshot(screenshotPath);
-					e.printStackTrace();
-					break;
-				}
+				
 
 				WebElement jobTitleElement = getElementIfExists(driver,
 						"(//div[@id='offer-body'])[" + i + "]/div/div/h3");
 
+				if (i==1) {
+					
+		
+				}
 				if (i % 2 == 0 && i <= TotalJobsOnPage.size()) {
 					int j = i - 1;
 					WebElement ScrollElement = getElementIfExists(driver,
@@ -231,6 +202,8 @@ class JobScraperTask3 implements Runnable {
 						jobDetailsList.add(new String[] { jobTitle, jobLocation, jobURL, companyName, companySize,
 								companyWebsite, source, dateCreated });
 					}
+					
+				
 
 				} catch (Exception e) {
 
@@ -245,6 +218,43 @@ class JobScraperTask3 implements Runnable {
 				} finally {
 					driver.close();
 					driver.switchTo().window(tabs.get(0));
+				}
+				
+				try {
+
+					if (TotalJobsOnPage.size() == i && i <= totalJobCount) {
+						
+						int k = i + 1;
+						WebElement ScrollElement = getElementIfExists(driver,
+								"(//div[@id='offer-body'])[" + i + "]/div/div/h3");
+						if (ScrollElement != null) {
+							((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
+									ScrollElement);
+
+							WebElement naviagteButton = getElementIfExists(driver,
+									"//a[(@role='button' and normalize-space()='" + PageNaviagtionCount + "')]");
+							if (naviagteButton != null) {
+								naviagteButton.click();
+								sleepRandom();
+								PageNaviagtionCount++;
+								i = 0;
+								((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
+								
+							} else {
+								System.out.println("page naviagtion might at the end.");
+								break;
+
+							}
+						}
+					}
+				} catch (Exception e) {
+					ExtentManager.getTest().log(Status.FAIL,
+							"inner break perforemed at 'page naviagtion'" + i + location);
+					System.out.println("inner break perforemed at 'page naviagtion'" + i + location);
+					String screenshotPath = takeScreenshot(driver, "error_" + source, location);
+					ExtentManager.addScreenshot(screenshotPath);
+					e.printStackTrace();
+					break;
 				}
 
 			}
