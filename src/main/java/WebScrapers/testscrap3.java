@@ -253,7 +253,7 @@ class JobScraperTask3 implements Runnable {
 								((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
 								
 							} else {
-								System.out.println("page naviagtion might at the end.");
+								System.out.println("page naviagtion might at the end."+source+location);
 								break;
 
 							}
@@ -316,7 +316,7 @@ class JobScraperTask3 implements Runnable {
 					System.out.println(
 							totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
 				} else {
-					System.out.println("No new jobs found.--" + source);
+					System.out.println("No new jobs found.--" + source +location);
 				}
 			} catch (Exception e) {
 				ExtentManager.getTest().log(Status.FAIL, "Error in adding jobs to database. -- " + source);
