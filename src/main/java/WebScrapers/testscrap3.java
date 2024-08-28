@@ -37,40 +37,56 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 public class testscrap3 {
-	static String source = "jobgether.com";
+    static String source = "jobgether.com";
+    private static final String[] LOCATIONS = { "UK", "Europe", "Australia", "USA" };
 
-	private static final String[] LOCATIONS = { "UK"};
-//	, "Europe", "Australia", "USA" 
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+        ExecutorService executor = null;
+        try {
+            String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
+            String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
+            ExtentManager.initReport(reportPath);
+            System.out.println("ADDING JOBS FROM  \"jobgether.com\"");
 
-	public static void main(String[] args) throws SQLException, ClassNotFoundException {
-		try {
+            // Create a thread pool with a fixed number of threads, one for each location
+            executor = Executors.newFixedThreadPool(LOCATIONS.length);
 
-			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-			String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
+            // List to hold Future objects representing the completion of submitted tasks
+            List<Future<?>> futures = new ArrayList<>();
 
-			ExtentManager.initReport(reportPath);
+            // Submit a new task for each location to the thread pool
+            for (String location : LOCATIONS) {
+                futures.add(executor.submit(new JobScraperTask3(location)));
+            }
 
-			System.out.println("ADDING JOBS FROM  \"jobgether.com\"");
+            // Wait for all tasks to complete
+            for (Future<?> future : futures) {
+                try {
+                    // get() will block until the task is complete
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
 
-			// Create a thread pool with a fixed number of threads, one for each location
-			ExecutorService executor = Executors.newFixedThreadPool(LOCATIONS.length);
-
-			// Submit a new task for each location to the thread pool
-			for (String location : LOCATIONS) {
-				executor.execute(new JobScraperTask3(location));
-			}
-
-			// Shutdown the executor service after all tasks are completed
-			executor.shutdown();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			ExtentManager.flushReport();
-		}
-	}
+            System.out.println("All tasks completed._"+source);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            ExtentManager.flushReport();
+            if (executor != null && !executor.isShutdown()) {
+                executor.shutdown(); // Ensure executor is shut down gracefully
+            }
+        }
+    }
 }
-
 class JobScraperTask3 implements Runnable {
 
 	private String location = null;
@@ -85,7 +101,7 @@ class JobScraperTask3 implements Runnable {
 		Connection connection = null;
 		List<String[]> jobDetailsList = new ArrayList<>();
 		String source = "jobgether.com";
-		int totalJobsAppended = 2;
+		int totalJobsAppended = 0;
 		try {
 			ChromeOptions options = new ChromeOptions();
 			options.addArguments("--headless");
@@ -124,7 +140,7 @@ class JobScraperTask3 implements Runnable {
 			System.out.println(location + "- total Job Count :" + totalJobCount);
 			int PageNaviagtionCount = 2;
 
-			for (int i = 48; i <= totalJobCount; i++) {
+			for (int i = 1; i <= totalJobCount; i++) {
 
 				System.out.println(
 						"Adding Jobs for \"" + source + "\" please wait until it shows completed....." + location);
@@ -134,10 +150,6 @@ class JobScraperTask3 implements Runnable {
 				WebElement jobTitleElement = getElementIfExists(driver,
 						"(//div[@id='offer-body'])[" + i + "]/div/div/h3");
 
-				if (i==1) {
-					
-		
-				}
 				if (i % 2 == 0 && i <= TotalJobsOnPage.size()) {
 					int j = i - 1;
 					WebElement ScrollElement = getElementIfExists(driver,

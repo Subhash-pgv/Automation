@@ -79,26 +79,23 @@
 			<artifactId>extentreports</artifactId>
 			<version>5.1.2</version>
 		</dependency>
+		
+
 	</dependencies>
 
 	<build>
-		<plugins>
-			<!-- Maven Exec Plugin to run the main class -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>3.0.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<mainClass>WebScrapers.MainCoordinator</mainClass>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0-M7</version> <!-- Use the latest version if available -->
+            <configuration>
+                <forkCount>1</forkCount> <!-- Forks a single JVM instance -->
+                <reuseForks>true</reuseForks>
+                <argLine>-Xms512m -Xmx2048m</argLine> <!-- Set the initial and maximum heap size -->
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
 </project>

@@ -34,6 +34,7 @@ public class testscrap2 {
     static String sources = "weworkremotely.com";
     static int totalJobCount = 0;  // Add this variable to track the total number of jobs
     static int totalJobsAppended = 0;
+    
 
     public static void main(String[] args) throws IOException, InterruptedException, SQLException, ClassNotFoundException {
 
@@ -42,6 +43,7 @@ public class testscrap2 {
          String reportPath = "C:/Users/user01/Desktop/Extended Reports/" +sources+ "_"+ timestamp + ".html";
         ExtentManager.initReport(reportPath);
         ExtentManager.startTest("Job Scraping Test - weworkremotely", "Automated job scraping from weworkremotely.com");
+        System.out.println("ADDING JOBS FROM \"weworkremotely.com\"");
 
         EdgeOptions options = new EdgeOptions();
         // Set headless mode
@@ -68,7 +70,7 @@ public class testscrap2 {
             driver.manage().window().maximize();
             sleepRandom();
             ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "Navigated to weworkremotely.com");
-            System.out.println("ADDING JOBS FROM \"weworkremotely.com\"");
+           
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 

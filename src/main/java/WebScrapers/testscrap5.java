@@ -37,39 +37,56 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 public class testscrap5 {
 	static String source = "himalayas.app";
 
 	private static final String[] LOCATIONS = {  "united-states","united-kingdom","australia","france","germany","spain","italy"};
 
-	public static void main(String[] args) throws SQLException, ClassNotFoundException {
-		try {
+	 public static void main(String[] args) throws SQLException, ClassNotFoundException {
+	        ExecutorService executor = null;
+	        try {
+	            String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
+	            String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
+	            ExtentManager.initReport(reportPath);
+	            System.out.println("ADDING JOBS FROM  \"himalayas.app\"");
 
-			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-			String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
+	            // Create a thread pool with a fixed number of threads, one for each location
+	            executor = Executors.newFixedThreadPool(LOCATIONS.length);
 
-			ExtentManager.initReport(reportPath);
+	            // List to hold Future objects representing the completion of submitted tasks
+	            List<Future<?>> futures = new ArrayList<>();
 
-			
+	            // Submit a new task for each location to the thread pool
+	            for (String location : LOCATIONS) {
+	                futures.add(executor.submit(new JobScraperTask5(location)));
+	            }
 
-			// Create a thread pool with a fixed number of threads, one for each location
-			ExecutorService executor = Executors.newFixedThreadPool(LOCATIONS.length);
+	            // Wait for all tasks to complete
+	            for (Future<?> future : futures) {
+	                try {
+	                    // get() will block until the task is complete
+	                    future.get();
+	                } catch (InterruptedException | ExecutionException e) {
+	                    e.printStackTrace();
+	                }
+	            }
 
-			// Submit a new task for each location to the thread pool
-			for (String location : LOCATIONS) {
-				executor.execute(new JobScraperTask5(location));
-			}
-
-			// Shutdown the executor service after all tasks are completed
-			executor.shutdown();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			ExtentManager.flushReport();
-		}
+	            System.out.println("All tasks completed._"+source);
+	            
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        } finally {
+	            ExtentManager.flushReport();
+	            if (executor != null && !executor.isShutdown()) {
+	                executor.shutdown(); // Ensure executor is shut down gracefully
+	            }
+	        }
+	    }
 	}
-}
 
 
 class JobScraperTask5 implements Runnable {
@@ -81,6 +98,8 @@ class JobScraperTask5 implements Runnable {
 		
 	}
 	
+	
+	
 	@Override
 	public void run() {
 		WebDriver driver = null;
@@ -88,12 +107,7 @@ class JobScraperTask5 implements Runnable {
 		String source = "himalayas.app";
 		
 		List<String[]> jobDetailsList = new ArrayList<>();
-
-		// Initialize ExtentReports
-		String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-		String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
-		ExtentManager.initReport(reportPath);
-		ExtentManager.startTest("Job Scraping Test- Himalayas.app", "Automated job scraping from Himalayas.app");
+	
 
 		int totalJobCount = 0;
 		int totalJobsAppended = 0;
@@ -116,6 +130,9 @@ class JobScraperTask5 implements Runnable {
 			
 			driver = new EdgeDriver(options);
 
+			ExtentManager.startTest("Job Scraping Test -" + source + ": " + location,
+					"Automated job scraping from " + source + ": " + location);
+			
 			driver.get(
 					"https://himalayas.app/jobs/countries/"+location+"?type=full-time%2Cpart-time%2Ccontractor%2Ctemporary%2Cintern&sort=recent&markets=fintech%2Centerprise-software%2Cweb-development%2Csoftware-development%2Cmachine-learning%2Csoftware%2Ccloud-computing%2Cweb-design%2Capp-development%2Cmobile-development%2Cinformation-technology%2Cdevops%2Cmobile-app-development%2Cui-design");
 			driver.manage().window().maximize();
@@ -125,7 +142,7 @@ class JobScraperTask5 implements Runnable {
 			ExtentManager.getTest().log(Status.INFO, "ADDING JOBS FROM \"himalayas.app\"-"+location);
 
 			WebElement resultCountElement = driver.findElement(By.xpath("//a[contains(text(),'Jobs')]"));
-			takeScreenshot(driver, "error");
+			
 			String resultText = resultCountElement.getText();
 			String parts = resultText.split("\n")[1];
 			NumberFormat format = NumberFormat.getInstance(Locale.US);
@@ -348,15 +365,16 @@ class JobScraperTask5 implements Runnable {
 
 	private static String takeScreenshot(WebDriver driver, String fileName) {
 		String screenshotPath = null;
+		String source = "himalayas.app";
 
 		try {
 			TakesScreenshot ts = (TakesScreenshot) driver;
-			File source = ts.getScreenshotAs(OutputType.FILE);
+			File sources = ts.getScreenshotAs(OutputType.FILE);
 			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
 			screenshotPath = "C:/Users/user01/Desktop/Extended Reports/Automation Scrapping Code Error Screenshots/"
 					+ fileName + "_" + timestamp + ".png";
 			File destination = new File(screenshotPath);
-			FileUtils.copyFile(source, destination);
+			FileUtils.copyFile(sources, destination);
 
 			System.out.println("Screenshot taken in " + source + " :" + destination.getPath());
 		} catch (IOException e) {
