@@ -9,6 +9,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import Utilities.ExtentManager;
@@ -41,11 +43,21 @@ public class testscrap2 {
         ExtentManager.initReport(reportPath);
         ExtentManager.startTest("Job Scraping Test - weworkremotely", "Automated job scraping from weworkremotely.com");
 
-        ChromeOptions options = new ChromeOptions();
-		options.addArguments("--headless");
-		options.addArguments("--window-size=1920x1080");
-		options.addArguments("--disable-gpu");
-        WebDriver driver = new ChromeDriver(options);
+        EdgeOptions options = new EdgeOptions();
+        // Set headless mode
+        options.addArguments("--headless");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--proxy-server='direct://'");
+        options.addArguments("--proxy-bypass-list=*");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--no-sandbox");
+        options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36");
+
+
+        WebDriver driver = new EdgeDriver(options);
 
         List<String[]> jobDetailsList = new ArrayList<>();
         
@@ -69,7 +81,7 @@ public class testscrap2 {
             List<String> tabs = null;
 
             for (int sectionId : sections) {
-            	System.out.println("looking Jobs from "+sources +" please wait untill completed");
+         
 
                 String companyName = null;
                 String jobTitle = null;
@@ -85,6 +97,9 @@ public class testscrap2 {
                     WebElement t = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//section[@id='category-" + sectionId + "']//li[@class='view-all']/a")));
                     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", t);
                 } catch (Exception e) {
+                	 String screenshotPath = takeScreenshot(driver, "error");
+                	e.printStackTrace();
+                	
                     switch (sectionId) {
                         case 2:
                             ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "No jobs found for Full-stack programming");
@@ -113,6 +128,8 @@ public class testscrap2 {
                 List<WebElement> resultCountElement = driver.findElements(By.xpath("//section[@id='category-" + sectionId + "']//li/a//span[@class='title']"));
 
                 for (int i = 1; i <= resultCountElement.size(); i++) {
+                	
+                   	System.out.println("looking Jobs from "+sources +" please wait untill completed" );
 
                     ExtentManager.getTest().log(com.aventstack.extentreports.Status.INFO, "Adding Jobs for " + sources + " please wait until it shows completed.....");
 
@@ -181,7 +198,7 @@ public class testscrap2 {
             }
 
         } catch (Exception e) {
-        	 ExtentManager.getTest().fail("Error occurred: " + e.getMessage());
+        	ExtentManager.getTest().fail("Error occurred: " + e.getMessage());
             ExtentManager.getTest().log(com.aventstack.extentreports.Status.FAIL, "Code did not execute completely. -- " + sources);
             System.out.println("Code did not execute completely. -- " + sources);
             ExtentManager.getTest().fail("Error occurred: " + e.getMessage());

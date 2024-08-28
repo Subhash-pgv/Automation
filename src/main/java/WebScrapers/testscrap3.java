@@ -6,6 +6,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -39,14 +40,14 @@ import java.io.IOException;
 public class testscrap3 {
 	static String source = "jobgether.com";
 
-	private static final String[] LOCATIONS = { "Europe", "Australia", "UK", "USA" };
+	private static final String[] LOCATIONS = { "UK", "Europe", "Australia", "USA" };
 
 	public static void main(String[] args) throws SQLException, ClassNotFoundException {
 		try {
-			 
+
 			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-			String reportPath = "C:/Users/user01/Desktop/Extended Reports/" +source+ "_"+ timestamp + ".html";
-			
+			String reportPath = "C:/Users/user01/Desktop/Extended Reports/" + source + "_" + timestamp + ".html";
+
 			ExtentManager.initReport(reportPath);
 
 			System.out.println("ADDING JOBS FROM  \"jobgether.com\"");
@@ -61,10 +62,9 @@ public class testscrap3 {
 
 			// Shutdown the executor service after all tasks are completed
 			executor.shutdown();
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			ExtentManager.flushReport();
 		}
 	}
@@ -84,17 +84,16 @@ class JobScraperTask3 implements Runnable {
 		Connection connection = null;
 		List<String[]> jobDetailsList = new ArrayList<>();
 		String source = "jobgether.com";
-		int totalJobsAppended = 0;
+		int totalJobsAppended = 2;
 		try {
 			ChromeOptions options = new ChromeOptions();
 			options.addArguments("--headless");
 			options.addArguments("--window-size=1920x1080");
 			options.addArguments("--disable-gpu");
 			driver = new ChromeDriver(options);
-			
-			ExtentManager.startTest("Job Scraping Test -" + source +": "+location, "Automated job scraping from " + source+": "+location);
-			
 
+			ExtentManager.startTest("Job Scraping Test -" + source + ": " + location,
+					"Automated job scraping from " + source + ": " + location);
 			if (location == "USA") {
 				driver.get(
 						"https://jobgether.com/search-offers?locations=622a65bd671f2c8b98faca1a&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f&sort=date");
@@ -108,56 +107,59 @@ class JobScraperTask3 implements Runnable {
 				driver.get(
 						"https://jobgether.com/search-offers?locations=622a659af0bac38678ed1398&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f&sort=date");
 			}
+
 			driver.manage().window().maximize();
-			
-			ExtentManager.getTest().log(Status.INFO, "Navigated to " + source +" : "+location);
+
+			ExtentManager.getTest().log(Status.INFO, "Navigated to " + source + " : " + location);
 
 			Thread.sleep(8000);
 			handlePopUp(driver);
 
 			WebElement resultCountElement = getElementIfExists(driver,
-					"//div[contains(@class,'sort_counter_container')]/div/div[1]");
+					"//div[contains(text(),'jobs found')]/child::span/parent::div");
 			String resultText = resultCountElement.getText();
 			String[] parts = resultText.split(" ");
 			int totalJobCount = Integer.parseInt(parts[0].trim());
-			System.out.println(location +"- total Job Count :"+ totalJobCount);
+			System.out.println(location + "- total Job Count :" + totalJobCount);
+			int PageNaviagtionCount = 2;
 
 			for (int i = 1; i <= totalJobCount; i++) {
 
 				System.out.println(
 						"Adding Jobs for \"" + source + "\" please wait until it shows completed....." + location);
-
+				List<WebElement> TotalJobsOnPage = getElementsIfExists(driver, "//div[@id='offer-body']/div/div/h3");
 				try {
-					List<WebElement> TotalJobsOnPage = getElementsIfExists(driver,
-							"//div[@id='offer-body']/div/div/h3");
 
 					if (TotalJobsOnPage.size() == i && i <= totalJobCount) {
 						int j = i - 2;
-						int k=i+1;
+						int k = i + 1;
 						WebElement ScrollElement = getElementIfExists(driver,
 								"(//div[@id='offer-body'])[" + j + "]/div/div/h3");
 						if (ScrollElement != null) {
 							((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
 									ScrollElement);
-							WebElement seemore = getElementIfExists(driver, "//a[normalize-space()='See more']");
-							if (seemore != null) {
-								seemore.click();
+
+							WebElement naviagteButton = getElementIfExists(driver,
+									"//a[(@role='button' and normalize-space()='" + PageNaviagtionCount + "')]");
+							if (naviagteButton != null) {
+								naviagteButton.click();
 								sleepRandom();
-								
-								WebElement viewElement = getElementIfExists(driver,
-										"(//div[@id='offer-body'])[" + k + "]/div/div/h3");
-								if(viewElement==null) {
-									System.out.println("No more jobs displyed after clicking on 'see more'- "+source + location);
-									break;
-								}
+								PageNaviagtionCount++;
+								i = 0;
+								continue;
+							} else {
+								System.out.println("page naviagtion might at the end.");
+								break;
+
 							}
 						}
 					}
 				} catch (Exception e) {
-					ExtentManager.getTest().log(Status.FAIL, "inner break perforemed at 'See more'" + i + location);
-					System.out.println("inner break perforemed at 'See more'" + i + location);
-					String screenshotPath = takeScreenshot(driver, "error_"+source,location);
-	                ExtentManager.addScreenshot(screenshotPath);
+					ExtentManager.getTest().log(Status.FAIL,
+							"inner break perforemed at 'page naviagtion'" + i + location);
+					System.out.println("inner break perforemed at 'page naviagtion'" + i + location);
+					String screenshotPath = takeScreenshot(driver, "error_" + source, location);
+					ExtentManager.addScreenshot(screenshotPath);
 					e.printStackTrace();
 					break;
 				}
@@ -165,7 +167,7 @@ class JobScraperTask3 implements Runnable {
 				WebElement jobTitleElement = getElementIfExists(driver,
 						"(//div[@id='offer-body'])[" + i + "]/div/div/h3");
 
-				if (i % 2 == 0 && i <= totalJobCount) {
+				if (i % 2 == 0 && i <= TotalJobsOnPage.size()) {
 					int j = i - 1;
 					WebElement ScrollElement = getElementIfExists(driver,
 							"(//div[@id='offer-body'])[" + j + "]/div/div/h3");
@@ -194,7 +196,22 @@ class JobScraperTask3 implements Runnable {
 
 				try {
 					driver.switchTo().window(tabs.get(1));
+
 					String jobURL = driver.getCurrentUrl();
+
+					if (jobURL == null) {
+						continue;
+					}
+
+					WebElement companySizeElement = getElementIfExists(driver,
+							"//div[contains(@class,'flex justify-center')]/following-sibling::div//span");
+					String companySize = companySizeElement != null ? companySizeElement.getText() : "";
+
+					List<String> validSizes = Arrays.asList("11 - 50", "2 - 10", "51 - 200");
+
+					if (companySizeElement == null) {
+						continue;
+					}
 
 					WebElement jobLocationElement = getElementIfExists(driver,
 							"//div[@id='offer_general_data']//span[contains(.,'Work from:')]/following-sibling::div");
@@ -208,13 +225,7 @@ class JobScraperTask3 implements Runnable {
 							"//div[contains(@class,'flex justify-center')]/following-sibling::a");
 					String companyWebsite = companyUrlElement != null ? companyUrlElement.getAttribute("href") : "";
 
-					WebElement companySizeElement = getElementIfExists(driver,
-							"//div[contains(@class,'flex justify-center')]/following-sibling::div//span");
-					String companySize = companySizeElement != null ? companySizeElement.getText() : "";
-
 					String dateCreated = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
-					List<String> validSizes = Arrays.asList("11 - 50", "2 - 10", "51 - 200");
 
 					if (validSizes.contains(companySize)) {
 						jobDetailsList.add(new String[] { jobTitle, jobLocation, jobURL, companyName, companySize,
@@ -222,14 +233,15 @@ class JobScraperTask3 implements Runnable {
 					}
 
 				} catch (Exception e) {
-					
-					ExtentManager.getTest().log(Status.FAIL, "Code Not executed completely for " + location + "--" + source);
+
+					ExtentManager.getTest().log(Status.FAIL,
+							"Code Not executed completely for " + location + "--" + source);
 					System.out.println("Code Not executed completely for " + location + "--" + source);
-					String screenshotPath = takeScreenshot(driver, "error_"+source,location);
-	                ExtentManager.addScreenshot(screenshotPath);
-					
+					String screenshotPath = takeScreenshot(driver, "error_" + source, location);
+					ExtentManager.addScreenshot(screenshotPath);
+
 					e.printStackTrace();
-					
+
 				} finally {
 					driver.close();
 					driver.switchTo().window(tabs.get(0));
@@ -238,8 +250,8 @@ class JobScraperTask3 implements Runnable {
 			}
 
 		} catch (Exception e) {
-			String screenshotPath = takeScreenshot(driver, "error_"+source,location);
-            ExtentManager.addScreenshot(screenshotPath);
+			String screenshotPath = takeScreenshot(driver, "error_" + source, location);
+			ExtentManager.addScreenshot(screenshotPath);
 			e.printStackTrace();
 			if (driver != null) {
 				driver.quit();
@@ -279,16 +291,17 @@ class JobScraperTask3 implements Runnable {
 				}
 
 				if (totalJobsAppended > 0) {
-					System.out.println(totalJobsAppended + " jobs added to DB successfully.--" + source);
+					System.out.println(
+							totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
 				} else {
 					System.out.println("No new jobs found.--" + source);
 				}
 			} catch (Exception e) {
-				 ExtentManager.getTest().log(Status.FAIL, "Error in adding jobs to database. -- " + source);
-	             System.out.println("Error in adding jobs to database. -- " + source);
+				ExtentManager.getTest().log(Status.FAIL, "Error in adding jobs to database. -- " + source);
+				System.out.println("Error in adding jobs to database. -- " + source);
 				e.printStackTrace();
 			} finally {
-				System.out.println(location + " : " + totalJobsAppended);
+
 				if (connection != null) {
 					try {
 						connection.close();
@@ -305,7 +318,7 @@ class JobScraperTask3 implements Runnable {
 
 	private static WebElement getElementIfExists(WebDriver driver, String xpath) {
 		try {
-			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 			return wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
 		} catch (Exception e) {
 			return null;
@@ -346,17 +359,17 @@ class JobScraperTask3 implements Runnable {
 
 		try {
 
-			String screenshotPath=null;
+			String screenshotPath = null;
 			String source = "jobtogrther.com";
 
 			TakesScreenshot ts = (TakesScreenshot) driver;
 			File sources = ts.getScreenshotAs(OutputType.FILE);
 			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
-			screenshotPath="C:/Users/user01/Desktop/Extended Reports/Automation Scrapping Code Error Screenshots/"
+			screenshotPath = "C:/Users/user01/Desktop/Extended Reports/Automation Scrapping Code Error Screenshots/"
 					+ fileName + "_" + timestamp + ".png";
 			File destination = new File(screenshotPath);
 			FileUtils.copyFile(sources, destination);
-			System.out.println("Screenshot taken in "+sources+" :" + location+ " :" + destination.getPath());
+			System.out.println("Screenshot taken in " + source + " :" + location + " :" + destination.getPath());
 
 		} catch (IOException e) {
 			e.printStackTrace();

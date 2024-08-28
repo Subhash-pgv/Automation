@@ -44,9 +44,9 @@ public class testscrap1 {
         WebDriver driver = null;
         try {
             ChromeOptions options = new ChromeOptions();
-//            options.addArguments("--headless");
-//            options.addArguments("--window-size=1920x1080");
-//            options.addArguments("--disable-gpu");
+            options.addArguments("--headless");
+            options.addArguments("--window-size=1920x1080");
+            options.addArguments("--disable-gpu");
             driver = new ChromeDriver(options);
             Actions actions = new Actions(driver);
             JavascriptExecutor js = (JavascriptExecutor) driver;
@@ -97,6 +97,11 @@ public class testscrap1 {
                             By.xpath("//div[contains(@class,'justify-between sm:flex-row')]//div[@class='job-name']//a"));
 
                     for (int j = 1; j <= jobTitles.size(); j++) {
+                    	
+                    	if (getEmployeeCount(driver) == null)break;
+                    	
+                    	String employeeCount = getEmployeeCount(driver) ;
+ 	  
                         String companyName = driver.findElement(By.xpath("//span[@class='company-name hover:underline']"))
                                 .getText();
                         String jobTitle = driver.findElement(By
@@ -115,7 +120,7 @@ public class testscrap1 {
                                 .findElement(By.xpath("(//div[@class='text-sm'])[1]/div[1]/div/div[2]/a"))
                                 .getAttribute("href");
                         String dateCreated = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        String employeeCount = getEmployeeCount(driver);
+                      
 
                         // Store job details in the two-dimensional array
                         jobDetailsList.add(new String[] {jobTitle, jobLocation, jobURL, companyName, employeeCount,
@@ -124,6 +129,11 @@ public class testscrap1 {
 
                     driver.close();
                     driver.switchTo().window(tab.get(1));
+                    if(i==totalmatching) {
+                    	 ExtentManager.getTest().log(Status.INFO, "All jobs readed successfully" + totalmatching);
+                    	System.out.println("All jobs readed successfully ");
+                    	break;
+                    }
                 }
 
             } catch (Exception e) {
@@ -243,7 +253,7 @@ public class testscrap1 {
         JavascriptExecutor js = (JavascriptExecutor) driver;
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        String URL = "https://www.workatastartup.com/companies?companySize=seed&companySize=small&demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=any&layout=list-compact&locations=US&locations=GB&locations=AU&locations=AT&locations=BE&locations=BG&locations=HR&locations=CY&locations=CZ&locations=DK&locations=FI&locations=FR&locations=DE&locations=GR&locations=HU&locations=IT&locations=MT&locations=NL&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=any";
+        String URL = "https://www.workatastartup.com/companies?companySize=seed&companySize=small&companySize=medium&demographic=any&hasEquity=any&hasSalary=any&industry=any&interviewProcess=any&jobType=any&layout=list-compact&locations=US&locations=GB&locations=AU&locations=AT&locations=BE&locations=BG&locations=HR&locations=CY&locations=CZ&locations=DK&locations=FI&locations=FR&locations=DE&locations=GR&locations=HU&locations=IT&locations=MT&locations=NL&role=eng&sortBy=created_desc&tab=any&usVisaNotRequired=any";
         String script = "window.open(arguments[0], '_blank');";
         sleepRandom();
         js.executeScript(script, URL);
