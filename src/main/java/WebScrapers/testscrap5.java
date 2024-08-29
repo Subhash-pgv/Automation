@@ -8,6 +8,8 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -116,7 +118,7 @@ class JobScraperTask5 implements Runnable {
 
 		try {
 			try {
-			EdgeOptions options = new EdgeOptions();
+			ChromeOptions options = new ChromeOptions();
 			options.addArguments("--headless");
 			options.addArguments("--disable-gpu");
 			options.addArguments("--window-size=1920,1080");
@@ -129,7 +131,7 @@ class JobScraperTask5 implements Runnable {
 			options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
 					+ "Chrome/85.0.4183.83 Safari/537.36");
 			
-			driver = new EdgeDriver(options);
+			driver = new ChromeDriver(options);
 
 			ExtentManager.startTest("Job Scraping Test -" + source + ": " + location,
 					"Automated job scraping from " + source + ": " + location);
