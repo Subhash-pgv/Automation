@@ -140,7 +140,7 @@ class JobScraperTask3 implements Runnable {
 			System.out.println(location + "- total Job Count :" + totalJobCount);
 			int PageNaviagtionCount = 2;
 
-			for (int i = 1; i <= 10; i++) {
+			for (int i = 1; i <= totalJobCount; i++) {
 
 				System.out.println(
 						"Adding Jobs for \"" + source + "\" please wait until it shows completed....." + location);

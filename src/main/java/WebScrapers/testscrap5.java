@@ -179,8 +179,7 @@ class JobScraperTask5 implements Runnable {
 						wait.until(ExpectedConditions.presenceOfElementLocated(
 								By.xpath("(//div[@class='w-full flex-1']/div/a)[" + i + "]")));
 
-						wait.until(ExpectedConditions.presenceOfElementLocated(
-								By.xpath("(//div[@class='w-full flex-1']/div/a)[" + i + "]")));
+					
 						WebElement jobTitleElement = getElementIfExists(driver,
 								"(//div[@class='w-full flex-1']/div/a)[" + i + "]");
 						// Make webelement on focus
@@ -254,10 +253,15 @@ class JobScraperTask5 implements Runnable {
 
 							driver.close();
 							driver.switchTo().window(tabs.get(0));
+						}
 							if (i % 20 == 0) {
 								WebElement next = getElementIfExists(driver, "//span[normalize-space()='Next']");
 								if (next != null) {
 									next.click();
+									sleepRandom();
+									((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
+											driver.findElement(By.xpath("(//div[@class='flex w-full flex-col'])[1]")));
+									
 								} else {
 									System.out.println("Job list might be at the end at -" + h +source+" : " +location);
 									ExtentManager.getTest().log(Status.INFO, "Job list might be at the end at -" + h +source+" : " +location);
@@ -265,7 +269,7 @@ class JobScraperTask5 implements Runnable {
 									break;
 								}
 							}
-						}
+						
 
 					}
 
