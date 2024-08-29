@@ -304,6 +304,15 @@ class JobScraperTask5 implements Runnable {
 						resultSet.close();
 						checkStatement.close();
 					}
+					
+					if (totalJobsAppended > 0) {
+						ExtentManager.getTest().log(Status.INFO,totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
+						System.out.println(
+								totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
+					} else {
+						ExtentManager.getTest().log(Status.INFO, "No new jobs found.--" + source +location);
+						System.out.println("No new jobs found.--" + source +location);
+					}
 
 					if (driver != null) {
 						driver.quit();

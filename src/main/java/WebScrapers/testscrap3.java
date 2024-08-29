@@ -113,16 +113,16 @@ class JobScraperTask3 implements Runnable {
 					"Automated job scraping from " + source + ": " + location);
 			if (location == "USA") {
 				driver.get(
-						"https://jobgether.com/search-offers?locations=622a65bd671f2c8b98faca1a&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f&sort=date");
+						"https://jobgether.com/remote-jobs/united-states?industries=computer-software-saas&industries=information-technology-services&sort=date");
 			} else if (location == "UK") {
 				driver.get(
-						"https://jobgether.com/search-offers?locations=622a65b4671f2c8b98fac83f&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f&sort=date");
+						"https://jobgether.com/remote-jobs/united-kingdom?industries=computer-software-saas&industries=information-technology-services&sort=date");
 			} else if (location == "Australia") {
 				driver.get(
-						"https://jobgether.com/search-offers?locations=622a65b0671f2c8b98fac759&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f&sort=date");
+						"https://jobgether.com/remote-jobs/australia?industries=computer-software-saas&industries=information-technology-services&sort=date");
 			} else if (location == "Europe") {
 				driver.get(
-						"https://jobgether.com/search-offers?locations=622a659af0bac38678ed1398&industries=62448b478cb2bb9b3540b791&industries=62448b478cb2bb9b3540b78f&sort=date");
+						"https://jobgether.com/remote-jobs/europe?industries=computer-software-saas&industries=information-technology-services&sort=date");
 			}
 
 			driver.manage().window().maximize();
@@ -313,9 +313,11 @@ class JobScraperTask3 implements Runnable {
 				}
 
 				if (totalJobsAppended > 0) {
+					ExtentManager.getTest().log(Status.INFO,totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
 					System.out.println(
 							totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
 				} else {
+					ExtentManager.getTest().log(Status.INFO, "No new jobs found.--" + source +location);
 					System.out.println("No new jobs found.--" + source +location);
 				}
 			} catch (Exception e) {
@@ -388,6 +390,7 @@ class JobScraperTask3 implements Runnable {
 			File sources = ts.getScreenshotAs(OutputType.FILE);
 			String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(LocalDateTime.now());
 			screenshotPath = "C:/Users/user01/Desktop/Extended Reports/Automation Scrapping Code Error Screenshots/"
+
 					+ fileName + "_" + timestamp + ".png";
 			File destination = new File(screenshotPath);
 			FileUtils.copyFile(sources, destination);
