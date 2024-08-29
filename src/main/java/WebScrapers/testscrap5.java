@@ -2,6 +2,7 @@ package WebScrapers;
 
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -44,8 +45,8 @@ import java.util.concurrent.Future;
 public class testscrap5 {
 	static String source = "himalayas.app";
 
-	private static final String[] LOCATIONS = {  "united-states","united-kingdom","australia","france","germany","spain","italy"};
-
+	private static final String[] LOCATIONS = {"united-states","united-kingdom","australia","france","germany","spain","italy" };
+//	
 	 public static void main(String[] args) throws SQLException, ClassNotFoundException {
 	        ExecutorService executor = null;
 	        try {
@@ -138,8 +139,7 @@ class JobScraperTask5 implements Runnable {
 			driver.manage().window().maximize();
 			Thread.sleep(5000);
 
-			System.out.println("ADDING JOBS FROM \"himalayas.app\"-" +location);
-			ExtentManager.getTest().log(Status.INFO, "ADDING JOBS FROM \"himalayas.app\"-"+location);
+			
 
 			WebElement resultCountElement = driver.findElement(By.xpath("//a[contains(text(),'Jobs')]"));
 			
@@ -150,10 +150,16 @@ class JobScraperTask5 implements Runnable {
 			Number number = format.parse(parts);
 			totalJobCount = number.intValue();
 			itrate = (int) Math.round((double) totalJobCount / 20);
-			int h = 0;
+			int h = 1;
 			
-				for (int k = 0; k <= itrate; k++) {
-					for (int i = 1; i <= 20; i++) {
+			System.out.println("ADDING JOBS FROM \"himalayas.app\"-" +location + " - total job count :"+totalJobCount);
+	 		ExtentManager.getTest().log(Status.INFO, "ADDING JOBS FROM \"himalayas.app\"-" +location + " - total job count :"+totalJobCount );
+			
+	 		 List<WebElement> NoOFjobTitle = driver.findElements(By.xpath("//div[@class='w-full flex-1']/div/a"));
+	 		
+	 		
+				for (int k = 1; k <= itrate; k++) {
+					for (int i = 1; i <= NoOFjobTitle.size(); i++) {
 						String companyName = "";
 						String jobTitle = "";
 						String jobLocation = "";
@@ -163,7 +169,7 @@ class JobScraperTask5 implements Runnable {
 						String employeeCount = "";
 						String dateCreated = "";
 
-						System.out.println("Adding JObs to DB please wait untill it shows completed.....-"+source+" : " +location);
+						System.out.println("Adding JOb "+h+" please wait untill it shows completed.....-"+source+" : " +location );
 						h++;
 
 						WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -242,7 +248,7 @@ class JobScraperTask5 implements Runnable {
 							jobDetailsList.add(new String[] { jobTitle, jobLocation, jobURL, companyName, employeeCount,
 									companyWebsite, source, dateCreated });
 
-							totalJobsAppended++;
+							
 
 							driver.close();
 							driver.switchTo().window(tabs.get(0));
@@ -266,7 +272,7 @@ class JobScraperTask5 implements Runnable {
 				ExtentManager.getTest().log(Status.INFO, "Total jobs appended: " + totalJobsAppended +" : " +source+" : " +location);
 			} catch (Exception e) {
 				ExtentManager.getTest().log(Status.FAIL, "Code did not execute completely.-- " + source+" : " +location);
-				System.out.println("Code did not execute completely.-- " + source+" : " +location);
+				System.out.println("Code did not execute completely.-- " + source+" : -" +location);
 				e.printStackTrace();
 				ExtentManager.getTest().fail("Error occurred: " + e.getMessage());
 				String screenshotPath = takeScreenshot(driver, "error");
@@ -310,7 +316,7 @@ class JobScraperTask5 implements Runnable {
 						System.out.println(
 								totalJobsAppended + " jobs added to DB successfully.--" + source + "--" + location);
 					} else {
-						ExtentManager.getTest().log(Status.INFO, "No new jobs found.--" + source +location);
+						ExtentManager.getTest().log(Status.INFO, "No new jobs found.--" + source+":-" +location);
 						System.out.println("No new jobs found.--" + source +location);
 					}
 

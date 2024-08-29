@@ -140,7 +140,7 @@ class JobScraperTask3 implements Runnable {
 			System.out.println(location + "- total Job Count :" + totalJobCount);
 			int PageNaviagtionCount = 2;
 
-			for (int i = 1; i <= totalJobCount; i++) {
+			for (int i = 1; i <= 10; i++) {
 
 				System.out.println(
 						"Adding Jobs for \"" + source + "\" please wait until it shows completed....." + location);
@@ -233,6 +233,8 @@ class JobScraperTask3 implements Runnable {
 				}
 				
 				try {
+					
+					
 
 					if (TotalJobsOnPage.size() == i && i <= totalJobCount) {
 						
@@ -244,7 +246,8 @@ class JobScraperTask3 implements Runnable {
 									ScrollElement);
 
 							WebElement naviagteButton = getElementIfExists(driver,
-									"//a[(@role='button' and normalize-space()='" + PageNaviagtionCount + "')]");
+									"//nav/a[normalize-space()='"+ PageNaviagtionCount +"']");
+		
 							if (naviagteButton != null) {
 								naviagteButton.click();
 								sleepRandom();
@@ -253,7 +256,8 @@ class JobScraperTask3 implements Runnable {
 								((JavascriptExecutor) driver).executeScript("window.scrollTo(0, 0);");
 								
 							} else {
-								System.out.println("page naviagtion might at the end."+source+location);
+
+								System.out.println("page naviagtion might at the end.(or) max reading limt reached -500 records "+source+location);
 								break;
 
 							}
