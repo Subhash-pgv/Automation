@@ -93,9 +93,11 @@ public class testscrap1 {
                     sleepRandom();
                     driver.switchTo().window(tab.get(2));
 
-                    List<WebElement> jobTitles = driver.findElements(
-                            By.xpath("//div[contains(@class,'justify-between sm:flex-row')]//div[@class='job-name']//a"));
-
+                   WebElement t = wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//div[contains(@class,'justify-between sm:flex-row')]//div[@class='job-name']//a")));
+                    
+                    
+					List<WebElement> jobTitles = driver.findElements(By.xpath("//div[contains(@class,'justify-between sm:flex-row')]//div[@class='job-name']//a"));
+					
                     for (int j = 1; j <= jobTitles.size(); j++) {
                     	
                     	if (getEmployeeCount(driver) == null)break;
@@ -116,9 +118,16 @@ public class testscrap1 {
                                 .xpath("(//div[contains(@class,'justify-between sm:flex-row')]//div[@class='job-name']//a)["
                                         + j + "]"))
                                 .getAttribute("href");
-                        String companyWebsite = driver
+                        String companyWebsiteText = driver
                                 .findElement(By.xpath("(//div[@class='text-sm'])[1]/div[1]/div/div[2]/a"))
-                                .getAttribute("href");
+                                .getText();
+                        
+                        String companyWebsite="";
+                        if(companyWebsiteText!=null) {
+                        companyWebsite = "https://"+companyWebsiteText;
+                        
+                        }
+                        
                         String dateCreated = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                       
 

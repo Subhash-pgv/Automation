@@ -108,6 +108,7 @@ class JobScraperTask5 implements Runnable {
 		WebDriver driver = null;
 		Connection connection = null;
 		String source = "himalayas.app";
+		String	companyWebsiteURL = null;
 		
 		List<String[]> jobDetailsList = new ArrayList<>();
 	
@@ -236,12 +237,23 @@ class JobScraperTask5 implements Runnable {
 								companyName = companyNameElement.getText();
 							}
 
+							
 							WebElement companyUrlElement1 = getElementIfExists(driver,
-									"//section[2]/a[contains(@href,'companies')]/div/h2/ancestor::a");
+									"//section[2]/a[contains(@href,'companies')]/following-sibling::a[conatins(text(),'Visit')]");
+							((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);",
+									companyUrlElement1);	
+							
 							if (companyUrlElement1 != null) {
-								companyWebsite = companyUrlElement1.getAttribute("href");
+							companyWebsiteURL = companyUrlElement1.getAttribute("href");
+							// Split URL at '?' and take the first part
+							companyWebsite = companyWebsiteURL.split("\\?")[0]; 
+							
 							}
-
+							
+							
+				            
+					        
+					       
 							LocalDateTime now = LocalDateTime.now();
 							DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 							dateCreated = now.format(formatter);
@@ -353,6 +365,10 @@ class JobScraperTask5 implements Runnable {
 
 	private static WebElement getElementIfExists(WebDriver driver, String xpath) {
 		try {
+			
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
+            
 			List<WebElement> elements = driver.findElements(By.xpath(xpath));
 			if (elements.size() > 0) {
 				return elements.get(0);
@@ -365,6 +381,9 @@ class JobScraperTask5 implements Runnable {
 
 	private static List<WebElement> getElementsIfExists(WebDriver driver, String xpath) {
 		try {
+			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
+            
 			List<WebElement> elements = driver.findElements(By.xpath(xpath));
 			if (elements.size() > 0) {
 				return elements;
